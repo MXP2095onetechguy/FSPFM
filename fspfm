@@ -110,7 +110,7 @@ function pollevent(){
             xdg-open $(fsplice $SHIn) 2> /dev/null || start $(fsplice $SHIn) 2> /dev/null ;
             ;;
         view*|see*)
-            pgwrap "$(fsplice $SHIn)";
+            less "$(fsplice $SHIn)";
             ;;
         shell*)
             tput clear;
@@ -127,7 +127,7 @@ function pollevent(){
             ;;
         help)
             tput clear;
-            printHelp | pgwrap;
+            printHelp | less;
             ;;
         "")
             NOOP;
