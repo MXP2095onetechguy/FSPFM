@@ -1,0 +1,201 @@
+#!/bin/bash
+
+# Fuckingly Simple Portable FileManager
+# Fukingly portable that it can run in multiple os
+# Fukingly simple that it combines Text-User-Interface with Command-Line-Interface
+
+# fsfpm vars
+OldCWD=$(pwd);
+ScriptDir="";
+ScriptLoc="";
+Running=1;
+out="";
+
+SHIn="";
+
+ScriptDir="$(cd "$(dirname "$0")" && pwd)";
+ScriptLoc="$ScriptDir/${BASH_SOURCE[0]}";
+
+# init for the source
+cd "$ScriptDir";
+
+# Slient the libs
+ShKit_NO_SPEAK=yes;
+# Source the libs
+source libs/ShKit/ShKit.sh;
+source libs/standalone/math.sh;
+source libs/standalone/color.sh;
+# Undefine the silencer
+ShKit_NO_SPEAK="";
+
+# exit the old loc
+cd "$OldCWD";
+
+# utility function stuff
+function drawLine() {
+    local color;
+
+    if test $(isDefined "$2") = "notdef";
+    then
+        color="\e[96m";
+    else
+        color="$2";
+    fi
+
+    local start=$'\e(0' end=$'\e(B' line="$1$1$1$1$1$1$1$1$1$1$1$1$1$1" # line='qqqqqqqqqqqqqqqq'
+    local cols=${COLUMNS:-$(tput cols)}
+    echo -n -e "$color";
+    while ((${#line} < cols)); do line+="$line"; done
+    printf '%s%s%s\n' "$start" "${line:0:cols}" "$end"
+    echo -n -e "\e[0m";
+}
+
+function txtbanner() {
+    echo -n -e "$GRN";
+    echo -e "Fuckingly Simple Portable FileManager (FSPFM)$DEF";
+}
+
+function printHelp() {
+    echo "FSPFM in-fm help";
+    echo -e "exit, quit, ragequit, rage, rage-quit, crasher, crash, crashy\t exit the program.\t Usage: [exit or or quit or ragequit or rage or rage-quit or crasher or crash or crashy]";
+    echo -e "cd, chdir\t change directory.\t Usage: [ch or chdir] /the/directory/you/want/to/go/to";
+    echo -e "open, run, start\t open the file, app or url in a default app.\t Usage: [open or run or start] [whatever you want]";
+    echo -e "shell\t run commands.\t Usage: shell [whatever command you want to run]";
+    echo -e "help\t show this help screen.\t Usage: help";
+
+}
+
+# quit function
+function quit() {
+    delDictionary $Args;
+
+    cd "$OldCWD";
+
+    tput cnorm;
+    tput reset;
+
+    exit $1;
+}
+
+
+# Main Code Stuff
+
+# drawing and main power house
+function drawui(){
+    tput civis;
+    txtbanner;
+    drawLine "#";
+    echo -e "$GRN$(echo "You are in $(pwd)")$DEF";
+    drawLine "#" "$DEF";
+    ls -F --color=auto;
+    drawLine "#" "$DEF";
+    echo -e "$out";
+
+    tput cup $(tput lines) 0;
+
+    tput cnorm;
+    SHIn=$(read -p "#> " cmd; echo $cmd);
+}
+
+function pollevent(){
+    out=;
+    case $SHIn in
+        exit|quit|ragequit|rage|rage-quit|crasher|crash|crashy)
+            Running=0;
+            ;;
+        cd*|chdir*)
+            cd $(fsplice $SHIn);
+            ;;
+        open*|run*|start*)
+            xdg-open $(fsplice $SHIn) 2> /dev/null || start $(fsplice $SHIn) 2> /dev/null ;
+            ;;
+        view*|see*)
+            pgwrap "$(fsplice $SHIn)";
+            ;;
+        shell*)
+            tput clear;
+            txtbanner;
+            echo "Waiting until the command is finished";
+            drawLine "#";
+            $(fsplice $SHIn);
+            read < /dev/stdin;
+            ;;
+        restart)
+            local newcwd=$(pwd);
+            cd "$OldCWD";
+            exec "$ScriptLoc" -cwd "$newcwd";
+            ;;
+        help)
+            tput clear;
+            printHelp | pgwrap;
+            ;;
+        "")
+            NOOP;
+            ;;
+        *)
+            out="$(echo $out)$(red "Command '$SHIn' does not exists";)";
+            ;;
+    esac
+}
+
+# main
+function mainFspfm(){
+    # initialize vars
+    Running=1;
+
+    # run args
+    if test $(dictionaryKeyStatus $Args "cwd") = "yes";
+    then
+        cd "$(getDictionaryKey $Args 'cwd')";
+    else
+        cd "$OldCWD";
+    fi
+
+    while test "$Running" = 1 || test "$Running" = "1";
+    do
+        cls;
+
+        drawui;
+        pollevent;
+    done
+
+    
+}
+
+# args
+Args=$(newDictionary);
+
+# loop over args
+for i in "$@"; do
+    case $i in
+        -h|--help|-?|/h|/?)
+            echo "Fuckingly Simple Portable FileManager";
+            echo "-h, --help, -?, /h, /? shows this message and exit.";
+            echo "-cmdh, --cmdhelp, /c show help for the fileman command";
+            echo "-cwd, --currworkdir, /w change current directory";
+            exit 0;
+            ;;
+        -cmdh|--cmdhelp)
+            printHelp;
+            exit 0;
+            ;;
+        -cwd|--currworkdir|/w)
+            setDictionaryKey "$Args" "cwd" "$2";
+            shift;
+            shift;
+            ;;
+        *)
+            # unknown option
+            ;;
+    esac
+done
+
+# init before start
+trap quit SIGINT;
+# trap drawui WINCH;
+
+# start main
+mainFspfm;
+
+# exit process
+quit 0;
