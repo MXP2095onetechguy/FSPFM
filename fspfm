@@ -22,9 +22,9 @@ cd "$ScriptDir";
 # Slient the libs
 ShKit_NO_SPEAK=yes;
 # Source the libs
-source libs/ShKit/ShKit.sh;
-source libs/standalone/math.sh;
-source libs/standalone/color.sh;
+source ./libs/ShKit/ShKit.sh;
+source ./libs/standalone/math.sh;
+source ./libs/standalone/color.sh;
 # Undefine the silencer
 ShKit_NO_SPEAK="";
 
