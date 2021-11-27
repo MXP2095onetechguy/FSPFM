@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Fuckingly Simple Portable FileManager
-# Fukingly portable that it can run in multiple os
-# Fukingly simple that it combines Text-User-Interface with Command-Line-Interface
+# F Simple Portable FileManager
+# F portable that it can run in multiple os
+# F simple that it combines Text-User-Interface with Command-Line-Interface
 
 # fsfpm vars
 OldCWD=$(pwd);
@@ -10,6 +10,7 @@ ScriptDir="";
 ScriptLoc="";
 Running=1;
 out="";
+lss="";
 
 SHIn="";
 
@@ -52,7 +53,7 @@ function drawLine() {
 
 function txtbanner() {
     echo -n -e "$GRN";
-    echo -e "Fuckingly Simple Portable FileManager (FSPFM)$DEF";
+    echo -e "F Simple Portable FileManager (FSPFM)$DEF";
 }
 
 function printHelp() {
@@ -60,7 +61,7 @@ function printHelp() {
     echo -e "exit, quit, ragequit, rage, rage-quit, crasher, crash, crashy\t exit the program.\t Usage: [exit or or quit or ragequit or rage or rage-quit or crasher or crash or crashy]";
     echo -e "cd, chdir\t change directory.\t Usage: [ch or chdir] /the/directory/you/want/to/go/to";
     echo -e "open, run, start\t open the file, app or url in a default app.\t Usage: [open or run or start] [whatever you want]";
-    echo -e "shell\t run commands.\t Usage: shell [whatever command you want to run]";
+    echo -e "shell\t run commands.\t Usage: shell [whatever command you want to run and it's args]";
     echo -e "help\t show this help screen.\t Usage: help";
 
 }
@@ -87,7 +88,15 @@ function drawui(){
     drawLine "#";
     echo -e "$GRN$(echo "You are in $(pwd)")$DEF";
     drawLine "#" "$DEF";
-    ls -F --color=auto;
+
+    lss=$(\ls -F | tr '\n' ' ');
+    if test -z "$lss";
+    then
+        red "There is nothing here :|";
+    else
+        echo -e "$lss";
+    fi
+
     drawLine "#" "$DEF";
     echo -e "$out";
 
@@ -99,6 +108,7 @@ function drawui(){
 
 function pollevent(){
     out=;
+    lss=;
     case $SHIn in
         exit|quit|ragequit|rage|rage-quit|crasher|crash|crashy)
             Running=0;
@@ -115,10 +125,11 @@ function pollevent(){
         shell*)
             tput clear;
             txtbanner;
-            echo "Waiting until the command is finished";
+            echo "Running and waiting until the command is finished.";
             drawLine "#";
             $(fsplice $SHIn);
-            read < /dev/stdin;
+            drawLine "#";
+            read -p "You can press enter to return back to fspfm." < /dev/stdin;
             ;;
         restart)
             local newcwd=$(pwd);
@@ -169,7 +180,7 @@ Args=$(newDictionary);
 for i in "$@"; do
     case $i in
         -h|--help|-?|/h|/?)
-            echo "Fuckingly Simple Portable FileManager";
+            echo "F Simple Portable FileManager";
             echo "-h, --help, -?, /h, /? shows this message and exit.";
             echo "-cmdh, --cmdhelp, /c show help for the fileman command";
             echo "-cwd, --currworkdir, /w change current directory";

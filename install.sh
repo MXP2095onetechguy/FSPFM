@@ -11,4 +11,7 @@ mkdir ~/.fspfm;
 echo "copying everything there";
 cp -r * ~/.fspfm;
 
+echo "copying the .git folder there";
+cp -a .git ~/.fspfm;
+
 echo "Now add ~/.fspfm to your path on your .bashrc or whatever";
